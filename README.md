@@ -1,104 +1,99 @@
-## 🚀 Welcome to the GitHub Runner Automation Toolkit!
+# GitHub Actions Wrappers
 
-This repo is your all-in-one Swiss Army knife for setting up custom GitHub Actions runners and managing SSH keys with style. 
+A collection of shell-based tools for streamlining GitHub Actions workflows and runner management.
 
-> **Why?**  
-> This toolkit was written to make it painless to set up and manage self-hosted runners—especially for **private repositories**, where extra steps and secure handling of tokens and SSH keys are required. No more manual runner registration or key wrangling!
+## 📋 Overview
 
-Here’s what each script does:
+This monorepo contains developer utilities that wrap the GitHub CLI (`gh`) to simplify common GitHub Actions tasks. These tools are designed for developers who frequently interact with GitHub Actions—whether triggering workflows or managing self-hosted runners.
 
+## 🧰 Projects
 
----
-
-### 🌱 `env.sh` & `.env`
-*Environment variable magic!*
-- `.env` holds your secrets (like your GitHub access token).
-- `env.sh` loads them up for your scripts.
+| Project | Description | Use Case |
+|---------|-------------|----------|
+| [**gha-cli-wrapper**](./gha-cli-wrapper/) | Interactive fuzzy-finder interface for triggering `workflow_dispatch` workflows | Quickly trigger workflows with complex inputs across multiple repos |
+| [**dynamic_runner_registrator**](./dynamic_runner_registrator/) | Automated self-hosted runner setup and SSH key management | Register/unregister GitHub Actions runners for private repositories |
 
 ---
 
-### 🗄️ `env.bak`
-*A backup for your environment variable names, not the secrets-because sharing secrets is not fun, not remembering what they were is even worse*
+### 🚀 GHA CLI Wrapper
+
+An interactive terminal tool that uses `fzf` to provide a menu-driven interface for triggering GitHub Actions workflows.
+
+**Key Features:**
+- Fuzzy-finder selection for repositories, branches, and workflows
+- Automatic detection of workflow inputs (boolean, string, choice types)
+- Interactive input configuration before execution
+
+**Quick Start:**
+```bash
+cd gha-cli-wrapper
+./gha.sh
+```
+
+📖 [Full Documentation →](./gha-cli-wrapper/README.md)
 
 ---
 
-### 🏗️ `setup.sh`
-*Downloads and unpacks the latest GitHub Actions Runner for you. No more manual downloads—just run and chill!*
+### 🤖 Dynamic Runner Registrator
+
+A toolkit for automating the setup and registration of self-hosted GitHub Actions runners, with built-in SSH key management.
+
+**Key Features:**
+- Downloads and configures the latest GitHub Actions Runner
+- Automates runner registration and removal via the GitHub API
+- Generates and uploads SSH keys to GitHub
+
+**Quick Start:**
+```bash
+cd dynamic_runner_registrator
+# Set your access token in .env
+./setup.sh        # Download runner
+./registration.sh # Register with your repo
+```
+
+📖 [Full Documentation →](./dynamic_runner_registrator/README.md)
 
 ---
 
-### 🤖 `registration.sh`
-*Automates runner registration with your repo. It fetches a registration token and configures your runner with a single command. Supports both `jq` and `grep` for parsing—because flexibility is cool.*
+## 🔧 Prerequisites
 
-#### 🚦 What Does This Script Do?
+All tools require the GitHub CLI authenticated:
 
-- **Loads secrets** from `.env` and checks for a valid `ACCESS_TOKEN`.
-- **Accepts arguments** for `owner/repo` and an optional runner name (defaults to `auto-runner`).
-- **Fetches a registration token** from the GitHub API (using `jq` or `grep` depending on availability on the host).
-- **Detects and removes** any previously registered runner before re-registering.
-- **Registers the runner** with your repository using `config.sh`.
-- **Prompts to install the runner as a system service** (recommended), or to start it interactively.
-- **Provides clear user prompts and status messages** throughout.
+```bash
+# Install GitHub CLI
+brew install gh          # macOS
+dnf install gh-cli       # Fedora/RHEL
 
+# Authenticate
+gh auth login
+```
 
----
+## 📁 Repository Structure
 
-## SSH Key Automation Toolkit 
+```
+gha_wrappers/
+├── gha-cli-wrapper/              # Workflow trigger tool
+│   ├── gha.sh                    # Main script
+│   ├── repos.txt                 # Repository configuration
+│   └── branches.txt              # Branch configuration
+│
+├── dynamic_runner_registrator/   # Runner management toolkit
+│   ├── setup.sh                  # Runner download script
+│   ├── registration.sh           # Runner registration script
+│   ├── env.sh                    # Environment loader
+│   └── ssh-api/                  # SSH key management
+│       └── gh-ssh-key.sh         # SSH key generator/uploader
+│
+└── README.md                     # This file
+```
 
-### 🔑 `ssh-api/gh-ssh-key.sh`
-*Generates a shiny new ed25519 SSH key, uploads it to your GitHub account, and adds it to your local ssh-agent. All you need for secure, key-based GitHub access, in one go!*
+## 🤝 Contributing
 
----
-
-
-### 🛡️ `.gitignore`
-*Keeps your secrets and runner files out of git. Safety first!*
-
----
-
-## How to Use
-
-1. **Set your access token** in `.env`.
-2. **Run `setup.sh`** to grab the latest runner.
-3. **Register your runner** with `registration.sh`.
-4. **Generate and upload SSH keys** with `ssh-api/gh-ssh-key.sh`.
-
----
-
-## 🔐 About Access Tokens & Permissions
-
-To use this toolkit, you’ll need a **GitHub Personal Access Token** with the following permissions:
-
-### 🏃 Runner Registration & Removal
-
-- **Scope:** `repo` (for private repositories)  
-- **Fine-grained permissions:**  
-  - `Actions: Read and Write` (required for registration and removal of runners)
-
-This token is used to:
-- **Request a registration token** (to add a runner)
-- **Request a removal token** (to remove/unregister a runner)
-
-### 🔑 SSH Key Management
-
-- **Scope:** `admin:public_key`  
-  (or, for fine-grained tokens: `Public SSH keys: Read and Write`)
-
-This is required for:
-- **Adding SSH keys to your GitHub account via the API**
+1. Fork the repository
+2. Create a feature branch
+3. Make changes and test locally
+4. Submit a Pull Request
 
 ---
 
-> **Note:**  
-> - For **private repositories**, your token must have access to the repo.
-> - Never share your access token or commit it to version control.
-> - Store your token securely in the `.env` file (which is already gitignored .. you'll need to create it).
-
----
-
-
-> **Pro tip:** All scripts are designed to be idempotent and safe. Tweak, run, and automate with confidence!
-
----
-
-Happy automating! 🚦
+> **Pro tip:** Both tools are designed to be idempotent and safe. Run them with confidence!
