@@ -107,7 +107,7 @@ echo "Loading inputs for: $WORKFLOW_NAME..."
 
 # 2. PARSE INPUTS (Bash 3.2 Compatible)
 # Cache the workflow YAML to avoid multiple API calls
-WORKFLOW_YAML=$(gh workflow view "$WORKFLOW_NAME" -R "${REPO}" --yaml 2>/dev/null)
+WORKFLOW_YAML=$(gh workflow view --ref "$BRANCH" "$WORKFLOW_NAME" -R "${REPO}" --yaml 2>/dev/null)
 
 # We read keys into a standard array
 INPUT_KEYS_RAW=$(echo "$WORKFLOW_YAML" | yq -r '.on.workflow_dispatch.inputs | keys | .[]' 2>/dev/null)
@@ -221,6 +221,23 @@ echo "🚀 COMMAND TO EXECUTE:"
 echo "────────────────────────────────────────────────────────────────"
 echo "gh workflow run \"$WORKFLOW_NAME\" -R \"$REPO\" --ref \"$BRANCH\"$CMD_ARGS"
 echo "════════════════════════════════════════════════════════════════"
+
+# Show inputs table if there are any configured inputs
+if [[ ${#KEY_LIST[@]} -gt 0 ]]; then
+    echo ""
+    echo "📋 INPUT PARAMETERS:"
+    echo "────────────────────────────────────────────────────────────────"
+    for i in "${!KEY_LIST[@]}"; do
+        k="${KEY_LIST[$i]}"
+        v="${VAL_LIST[$i]}"
+        if [[ -n "$v" ]]; then
+            printf "  %-25s = %s\n" "$k" "$v"
+        else
+            printf "  %-25s = %s\n" "$k" "(not set)"
+        fi
+    done
+    echo "────────────────────────────────────────────────────────────────"
+fi
 echo ""
 
 read -p "Do you want to proceed? (y/N): " confirm
