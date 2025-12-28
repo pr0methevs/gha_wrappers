@@ -205,9 +205,7 @@ while true; do
     fi
 done
 
-# 4. EXECUTE
-echo "🚀 Triggering Workflow..."
-
+# 4. BUILD COMMAND
 CMD_ARGS=""
 if [[ ${#KEY_LIST[@]} -gt 0 ]]; then
     for i in "${!KEY_LIST[@]}"; do
@@ -219,6 +217,21 @@ if [[ ${#KEY_LIST[@]} -gt 0 ]]; then
     done
 fi
 
-# Run
-echo "Running: gh workflow run $WORKFLOW_NAME -R $REPO --ref $BRANCH $CMD_ARGS"
+# 5. SHOW COMMAND AND CONFIRM
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "🚀 COMMAND TO EXECUTE:"
+echo "────────────────────────────────────────────────────────────────"
+echo "gh workflow run \"$WORKFLOW_NAME\" -R \"$REPO\" --ref \"$BRANCH\"$CMD_ARGS"
+echo "════════════════════════════════════════════════════════════════"
+echo ""
+
+read -p "Do you want to proceed? (y/N): " confirm
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo "Cancelled."
+    exit 0
+fi
+
+# 6. EXECUTE
+echo "🚀 Triggering Workflow..."
 gh workflow run "$WORKFLOW_NAME" -R "$REPO" --ref "$BRANCH" $CMD_ARGS
