@@ -161,9 +161,6 @@ while true; do
             # Display: 📝 publish [bool] : true
             MENU_ITEMS+=$'\n'"📝 $k $type_label : ${v:-(empty)}"
         done
-    else
-        echo "No inputs required."
-        break
     fi
 
     SELECTION=$(echo "$MENU_ITEMS" | fzf --header "CONFIGURE INPUTS" --header-border)
