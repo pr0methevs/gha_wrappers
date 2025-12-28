@@ -21,26 +21,40 @@ if ! echo "$LOGGED_IN_STATE" | grep -q "Logged in"; then
     exit 1
 fi
 
-OWNER="pr0methevs"
-REPOS_FILE="$(dirname "$0")/repos.txt"
+# Load configuration from YAML
+CONFIG_FILE="$(dirname "$0")/config.yaml"
 
-# Check if repos file exists
-if [[ ! -f "$REPOS_FILE" ]]; then
-    echo "Error: repos.txt not found at $REPOS_FILE"
-    echo "Create a repos.txt file with one repository name per line."
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Error: config.yaml not found at $CONFIG_FILE"
+    echo "Create a config.yaml file with repositories and their branches."
     exit 1
 fi
 
-# Build repo list from file
+# Read owner from config
+OWNER=$(yq -r '.owner' "$CONFIG_FILE")
+
+if [[ -z "$OWNER" || "$OWNER" == "null" ]]; then
+    echo "Error: 'owner' not defined in config.yaml"
+    exit 1
+fi
+
+# Build repo list from config
+REPO_NAMES=$(yq -r '.repositories | keys | .[]' "$CONFIG_FILE")
+
+if [[ -z "$REPO_NAMES" ]]; then
+    echo "Error: No repositories defined in config.yaml"
+    exit 1
+fi
+
+# Format repos with owner prefix for display
 REPO_LIST=""
-while IFS= read -r repo || [[ -n "$repo" ]]; do
-    # Skip empty lines and comments
-    [[ -z "$repo" || "$repo" == \#* ]] && continue
+while IFS= read -r repo; do
     REPO_LIST+="${OWNER}/${repo}"$'\n'
-done < "$REPOS_FILE"
+done <<< "$REPO_NAMES"
 
 echo "repo list = ${REPO_LIST}"
 
+# Select repository
 REPO=$(echo "${REPO_LIST}" | fzf --header "SELECT A REPO:" --header-border)
 
 if [[ -z "$REPO" ]]; then
@@ -50,23 +64,21 @@ fi
 
 echo "REPO = ${REPO}"
 
-# Load branches from file
-BRANCHES_FILE="$(dirname "$0")/branches.txt"
+# Extract repo name (without owner prefix) for config lookup
+REPO_NAME="${REPO#${OWNER}/}"
 
-if [[ ! -f "$BRANCHES_FILE" ]]; then
-    echo "Error: branches.txt not found at $BRANCHES_FILE"
-    echo "Create a branches.txt file with one branch name per line."
+# Get branches for the selected repo from config
+BRANCH_LIST=$(yq -r ".repositories[\"$REPO_NAME\"].branches | .[]" "$CONFIG_FILE")
+
+if [[ -z "$BRANCH_LIST" ]]; then
+    echo "Error: No branches defined for '$REPO_NAME' in config.yaml"
     exit 1
 fi
 
-# Build branch list from file
-BRANCH_LIST=""
-while IFS= read -r branch || [[ -n "$branch" ]]; do
-    # Skip empty lines and comments
-    [[ -z "$branch" || "$branch" == \#* ]] && continue
-    BRANCH_LIST+="$branch"$'\n'
-done < "$BRANCHES_FILE"
+echo "Available branches for $REPO_NAME:"
+echo "$BRANCH_LIST"
 
+# Select branch
 BRANCH=$(echo "${BRANCH_LIST}" | fzf --header "SELECT A BRANCH:" --header-border)
 
 if [[ -z "$BRANCH" ]]; then

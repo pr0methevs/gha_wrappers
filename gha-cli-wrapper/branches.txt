@@ -1,4 +1,0 @@
-master
-main
-develop
-feature/test

@@ -1,0 +1,13 @@
+# GitHub Actions CLI Wrapper Configuration
+# Define repositories and their associated branches
+
+owner: pr0methevs
+
+repositories:
+  java-angular:
+    branches:
+      - master
+
+  test-project:
+    branches:
+      - main
