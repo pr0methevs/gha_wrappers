@@ -261,3 +261,15 @@ fi
 # 6. EXECUTE
 echo "🚀 Triggering Workflow..."
 gh workflow run "$WORKFLOW_NAME" -R "$REPO" --ref "$BRANCH" $CMD_ARGS
+
+echo ""
+echo "✅ Workflow triggered successfully!"
+echo ""
+
+# 7. OFFER TO OPEN IN BROWSER
+read -p "Open workflow in browser? (y/N): " open_browser
+if [[ "$open_browser" =~ ^[Yy]$ ]]; then
+    echo "🌐 Opening workflow in browser..."
+    gh workflow view "$WORKFLOW_NAME" -R "$REPO" --web
+fi
+
