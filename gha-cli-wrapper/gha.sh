@@ -128,18 +128,25 @@ echo "Input keys raw: $INPUT_KEYS_RAW"
 # Convert newline-separated string to array
 IFS=$'\n' read -rd '' -a KEY_LIST <<< "$INPUT_KEYS_RAW"
 
-# Initialize arrays for values, types, and options
+# Initialize arrays for values, types, options, and defaults
 VAL_LIST=()
 TYPE_LIST=()
 OPTIONS_LIST=()
+DEFAULT_LIST=()
 
 for i in "${!KEY_LIST[@]}"; do
     k="${KEY_LIST[$i]}"
-    VAL_LIST[$i]=""
     
     # Get the type for this input (default to 'string' if not specified)
     input_type=$(echo "$WORKFLOW_YAML" | yq -r ".on.workflow_dispatch.inputs[\"$k\"].type // \"string\"" 2>/dev/null)
     TYPE_LIST[$i]="$input_type"
+    
+    # Get the default value (empty string if not specified)
+    default_val=$(echo "$WORKFLOW_YAML" | yq -r ".on.workflow_dispatch.inputs[\"$k\"].default // \"\"" 2>/dev/null)
+    DEFAULT_LIST[$i]="$default_val"
+    
+    # Pre-populate value with default
+    VAL_LIST[$i]="$default_val"
     
     # Get options if it's a choice type
     if [[ "$input_type" == "choice" ]]; then
@@ -160,6 +167,7 @@ while true; do
             k="${KEY_LIST[$i]}"
             v="${VAL_LIST[$i]}"
             t="${TYPE_LIST[$i]}"
+            d="${DEFAULT_LIST[$i]}"
             opts="${OPTIONS_LIST[$i]}"
             
             # Format type display
@@ -170,8 +178,17 @@ while true; do
                 *)         type_label="[$t]" ;;
             esac
             
-            # Display: 📝 publish [bool] : true
-            MENU_ITEMS+=$'\n'"📝 $k $type_label : ${v:-(empty)}"
+            # Show value with default indicator if using default
+            if [[ -z "$v" ]]; then
+                val_display="(empty)"
+            elif [[ "$v" == "$d" && -n "$d" ]]; then
+                val_display="$v (default)"
+            else
+                val_display="$v"
+            fi
+            
+            # Display: 📝 publish [bool] : true (default)
+            MENU_ITEMS+=$'\n'"📝 $k $type_label : $val_display"
         done
     fi
 
