@@ -231,14 +231,16 @@ while true; do
     fi
 done
 
-# 4. BUILD COMMAND
-CMD_ARGS=""
+# 4. BUILD COMMAND ARGUMENTS ARRAY
+CMD_ARGS=()
+CMD_DISPLAY=""
 if [[ ${#KEY_LIST[@]} -gt 0 ]]; then
     for i in "${!KEY_LIST[@]}"; do
         k="${KEY_LIST[$i]}"
         v="${VAL_LIST[$i]}"
         if [[ -n "$v" ]]; then
-            CMD_ARGS+=" -f $k=$v"
+            CMD_ARGS+=("-f" "$k=$v")
+            CMD_DISPLAY+=" -f $k=\"$v\""
         fi
     done
 fi
@@ -248,7 +250,7 @@ echo ""
 echo "════════════════════════════════════════════════════════════════"
 echo "🚀 COMMAND TO EXECUTE:"
 echo "────────────────────────────────────────────────────────────────"
-echo "gh workflow run \"$WORKFLOW_NAME\" -R \"$REPO\" --ref \"$BRANCH\"$CMD_ARGS"
+echo "gh workflow run \"$WORKFLOW_NAME\" -R \"$REPO\" --ref \"$BRANCH\"$CMD_DISPLAY"
 echo "════════════════════════════════════════════════════════════════"
 
 # Show inputs table if there are any configured inputs
@@ -277,7 +279,7 @@ fi
 
 # 6. EXECUTE
 echo "🚀 Triggering Workflow..."
-gh workflow run "$WORKFLOW_NAME" -R "$REPO" --ref "$BRANCH" $CMD_ARGS
+gh workflow run "$WORKFLOW_NAME" -R "$REPO" --ref "$BRANCH" "${CMD_ARGS[@]}"
 
 echo ""
 echo "✅ Workflow triggered successfully!"
